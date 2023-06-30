@@ -5,7 +5,7 @@ fun main() {
     val dictionary = Dictionary("English dictionary")
 
     for (line in wordsFile.readLines()) {
-        val line = line.split("|").toMutableList()
+        val line = line.split("|")
         val word = Word(original = line[0], translate = line[1], correctAnswersCount = line[2].toIntOrNull() ?: 0)
         dictionary.listOfWords.add(word)
     }
@@ -21,7 +21,6 @@ fun main() {
                 val percentCorrectAnswers = 100 * numberCorrectAnswers / numberAllAnswers
                 println("Выучено $numberCorrectAnswers из $numberAllAnswers слов | $percentCorrectAnswers%")
             }
-
             else -> return
         }
     }
