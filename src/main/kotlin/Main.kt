@@ -11,10 +11,41 @@ fun main() {
     }
 
     while (true) {
-        println("Меню: 1 – Учить слова, 2 – Статистика, 0 – Выход")
+        println("Меню: 1–Учить слова, 2–Статистика, 0–Выход")
 
         when (readln()) {
-            "1" -> println("1")
+
+            "1" -> {
+                while (true) {
+                    val unlearnedWords = dictionary.listOfWords.filter { it.correctAnswersCount < 3 }.toMutableList()
+
+                    if (unlearnedWords.isEmpty()) {
+                        println("Вы выучили все слова!")
+                        return
+
+                    } else {
+                        val newWord = unlearnedWords.random()
+                        val listAnswers = unlearnedWords.map { it.translate }.shuffled().take(3).toMutableSet()
+                        listAnswers.add(newWord.translate)
+
+                        while (listAnswers.size < 4)
+                            listAnswers.add(dictionary.listOfWords.random().translate)
+
+                        val resultList = listAnswers.shuffled().toMutableList()
+
+                        println("Выберите правильный перевод слова \"${newWord.original}\":")
+                        println("1-${resultList[0]} 2-${resultList[1]} 3-${resultList[2]} 4-${resultList[3]} 0-Назад")
+                        when (readln()) {
+                            "1" -> checkWordTranslation(newWord, resultList[0])
+                            "2" -> checkWordTranslation(newWord, resultList[1])
+                            "3" -> checkWordTranslation(newWord, resultList[2])
+                            "4" -> checkWordTranslation(newWord, resultList[3])
+                            else -> break
+                        }
+                    }
+                }
+            }
+
             "2" -> {
                 val numberCorrectAnswers = dictionary.listOfWords.filter { it.correctAnswersCount > 2 }.size
                 val numberAllAnswers = dictionary.listOfWords.size
@@ -33,5 +64,12 @@ data class Dictionary(val name: String) {
 data class Word(
     val original: String,
     val translate: String,
-    val correctAnswersCount: Int = 0,
+    var correctAnswersCount: Int = 0,
 )
+
+fun checkWordTranslation(newWord: Word, answer: String) {
+    if (newWord.translate == answer) {
+        println("Правильно!\n")
+        newWord.correctAnswersCount ++
+    } else println("Неправильно! - ${newWord.original} [${newWord.translate}]\n")
+}
