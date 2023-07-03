@@ -24,13 +24,15 @@ fun main() {
                         return
 
                     } else {
-                        val setAnswers = unlearnedWords.shuffled().take(4).toMutableSet()
-                        val wordToLearn = setAnswers.random()
+                        val listAnswers = unlearnedWords.shuffled().take(4).toMutableList()
+                        val wordToLearn = listAnswers.random()
 
-                        while (setAnswers.size < 4)
-                            setAnswers.add(dictionary.listOfWords.random())
-
-                        val listAnswers = setAnswers.shuffled().toMutableList()
+                        if (listAnswers.size < 4) {
+                            val learnedWords = dictionary.listOfWords.filter { it.correctAnswersCount > 2 }
+                            val addedAnswers = learnedWords.shuffled().take(4 - listAnswers.size)
+                            addedAnswers.forEach { listAnswers.add(it) }
+                            listAnswers.shuffle()
+                        }
 
                         println("Выберите правильный перевод слова ${wordToLearn.original}:")
                         for (i in listAnswers.indices)
@@ -69,9 +71,9 @@ data class Word(
     var correctAnswersCount: Int = 0,
 )
 
-fun checkWordTranslation(newWord: Word, answer: String) {
-    if (newWord.translate == answer) {
+fun checkWordTranslation(wordToLearn: Word, chosenAnswer: String) {
+    if (wordToLearn.translate == chosenAnswer) {
         println("Правильно!\n")
-        newWord.correctAnswersCount++
-    } else println("Неправильно! - ${newWord.original} [${newWord.translate}]\n")
+        wordToLearn.correctAnswersCount++
+    } else println("Неправильно! - ${wordToLearn.original} [${wordToLearn.translate}]\n")
 }
