@@ -24,21 +24,24 @@ fun main() {
                         return
 
                     } else {
-                        val listAnswers = unlearnedWords.map { it.translate }.shuffled().take(4).toMutableSet()
-                        val newWord = unlearnedWords.filter { it.translate == listAnswers.random() }[0]
+                        val setAnswers = unlearnedWords.shuffled().take(4).toMutableSet()
+                        val wordToLearn = setAnswers.random()
 
-                        while (listAnswers.size < 4)
-                            listAnswers.add(dictionary.listOfWords.random().translate)
+                        while (setAnswers.size < 4)
+                            setAnswers.add(dictionary.listOfWords.random())
 
-                        val resultList = listAnswers.shuffled().toMutableList()
+                        val listAnswers = setAnswers.shuffled().toMutableList()
 
-                        println("Выберите правильный перевод слова ${newWord.original}:")
-                        println("1-${resultList[0]} 2-${resultList[1]} 3-${resultList[2]} 4-${resultList[3]} 0-Назад")
+                        println("Выберите правильный перевод слова ${wordToLearn.original}:")
+                        for (i in listAnswers.indices)
+                            print("${i + 1}-${listAnswers[i].translate}, ")
+                        println("0-Назад")
+
                         when (readln()) {
-                            "1" -> checkWordTranslation(newWord, resultList[0])
-                            "2" -> checkWordTranslation(newWord, resultList[1])
-                            "3" -> checkWordTranslation(newWord, resultList[2])
-                            "4" -> checkWordTranslation(newWord, resultList[3])
+                            "1" -> checkWordTranslation(wordToLearn, listAnswers[0].translate)
+                            "2" -> checkWordTranslation(wordToLearn, listAnswers[1].translate)
+                            "3" -> checkWordTranslation(wordToLearn, listAnswers[2].translate)
+                            "4" -> checkWordTranslation(wordToLearn, listAnswers[3].translate)
                             else -> break
                         }
                     }
