@@ -1,12 +1,13 @@
 import java.io.File
+import java.io.FileWriter
 
 fun main() {
     val wordsFile = File("words.txt")
     val dictionary = Dictionary("English dictionary")
 
     for (line in wordsFile.readLines()) {
-        val line = line.split("|")
-        val word = Word(original = line[0], translate = line[1], correctAnswersCount = line[2].toIntOrNull() ?: 0)
+        val item = line.split("|")
+        val word = Word(original = item[0], translate = item[1], correctAnswersCount = item[2].toIntOrNull() ?: 0)
         dictionary.listOfWords.add(word)
     }
 
@@ -24,28 +25,31 @@ fun main() {
                         return
 
                     } else {
-                        val listAnswers = unlearnedWords.shuffled().take(4).toMutableList()
+                        val listAnswers = unlearnedWords.shuffled().take(NUMBER_ANSWERS).toMutableList()
                         val wordToLearn = listAnswers.random()
 
-                        if (listAnswers.size < 4) {
+                        if (listAnswers.size < NUMBER_ANSWERS) {
                             val learnedWords = dictionary.listOfWords.filter { it.correctAnswersCount > 2 }
-                            val addedAnswers = learnedWords.shuffled().take(4 - listAnswers.size)
-                            addedAnswers.forEach { listAnswers.add(it) }
+                            listAnswers.addAll(learnedWords.shuffled().take(NUMBER_ANSWERS - listAnswers.size))
                             listAnswers.shuffle()
                         }
 
                         println("Выберите правильный перевод слова ${wordToLearn.original}:")
                         for (i in listAnswers.indices)
                             print("${i + 1}-${listAnswers[i].translate}, ")
-                        println("0-Назад")
+                        println("0-Меню")
 
-                        when (readln()) {
-                            "1" -> checkWordTranslation(wordToLearn, listAnswers[0].translate)
-                            "2" -> checkWordTranslation(wordToLearn, listAnswers[1].translate)
-                            "3" -> checkWordTranslation(wordToLearn, listAnswers[2].translate)
-                            "4" -> checkWordTranslation(wordToLearn, listAnswers[3].translate)
-                            else -> break
-                        }
+                        val chosenNumber = readln().toIntOrNull() ?: 0
+                        if (chosenNumber in 1..NUMBER_ANSWERS) {
+
+                            if (listAnswers[chosenNumber - 1] == wordToLearn) {
+                                println("Правильно!\n")
+                                wordToLearn.correctAnswersCount++
+                                saveDictionary(dictionary.listOfWords)
+
+                            } else println("Неправильно! - ${wordToLearn.original} [${wordToLearn.translate}]\n")
+
+                        } else break
                     }
                 }
             }
@@ -56,6 +60,7 @@ fun main() {
                 val percentCorrectAnswers = 100 * numberCorrectAnswers / numberAllAnswers
                 println("Выучено $numberCorrectAnswers из $numberAllAnswers слов | $percentCorrectAnswers%")
             }
+
             else -> return
         }
     }
@@ -71,9 +76,14 @@ data class Word(
     var correctAnswersCount: Int = 0,
 )
 
-fun checkWordTranslation(wordToLearn: Word, chosenAnswer: String) {
-    if (wordToLearn.translate == chosenAnswer) {
-        println("Правильно!\n")
-        wordToLearn.correctAnswersCount++
-    } else println("Неправильно! - ${wordToLearn.original} [${wordToLearn.translate}]\n")
+fun saveDictionary(dictionary: List<Word>) {
+    val updatedWordsFile = FileWriter("words.txt")
+
+    for (i in dictionary.indices)
+        updatedWordsFile.write(
+            "${dictionary[i].original}|${dictionary[i].translate}|${dictionary[i].correctAnswersCount}\n"
+        )
+    updatedWordsFile.close()
 }
+
+const val NUMBER_ANSWERS = 4
