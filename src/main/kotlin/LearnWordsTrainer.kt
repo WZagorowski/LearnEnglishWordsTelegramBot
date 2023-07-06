@@ -1,6 +1,12 @@
 import java.io.File
 import java.io.FileWriter
 
+data class Word(
+    val original: String,
+    val translate: String,
+    var correctAnswersCount: Int = 0,
+)
+
 data class Statistics(
     val learned: Int,
     val total: Int,
@@ -12,8 +18,11 @@ data class Question(
     val correctAnswer: Word,
 )
 
-class LearnWordsTrainer (private val  learnedCount: Int = 3, private val  numberOfAnswers: Int = 4) {
-
+class LearnWordsTrainer(
+    private val learnedCount: Int = 3,
+    private val numberOfAnswers: Int = 4,
+    private val fileName: String = "words.txt",
+) {
     private var question: Question? = null
     private val dictionary = loadDictionary()
 
@@ -54,27 +63,27 @@ class LearnWordsTrainer (private val  learnedCount: Int = 3, private val  number
             }
         } ?: false
     }
-}
 
-private fun loadDictionary(): List<Word> {
-    try {
-        val dictionary = mutableListOf<Word>()
-        val wordsFile = File("words.txt")
+    private fun loadDictionary(): List<Word> {
+        try {
+            val dictionary = mutableListOf<Word>()
+            val wordsFile = File(fileName)
 
-        wordsFile.readLines().forEach {
-            val splitLine = it.split("|")
-            dictionary.add(Word(splitLine[0], splitLine[1], splitLine[2].toIntOrNull() ?: 0))
+            wordsFile.readLines().forEach {
+                val splitLine = it.split("|")
+                dictionary.add(Word(splitLine[0], splitLine[1], splitLine[2].toIntOrNull() ?: 0))
+            }
+            return dictionary
+        } catch (e: IndexOutOfBoundsException) {
+            throw IllegalStateException("некоректный файл")
         }
-        return dictionary
-    } catch (e: IndexOutOfBoundsException) {
-        throw IllegalStateException("некоректный файл")
     }
-}
 
-private fun saveDictionary(words: List<Word>) {
-    val updatedWordsFile = FileWriter("words.txt")
+    private fun saveDictionary(words: List<Word>) {
+        val updatedWordsFile = FileWriter(fileName)
 
-    for (i in words.indices)
-        updatedWordsFile.write("${words[i].original}|${words[i].translate}|${words[i].correctAnswersCount}\n")
-    updatedWordsFile.close()
+        for (i in words.indices)
+            updatedWordsFile.write("${words[i].original}|${words[i].translate}|${words[i].correctAnswersCount}\n")
+        updatedWordsFile.close()
+    }
 }

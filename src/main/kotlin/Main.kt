@@ -1,20 +1,11 @@
-data class Word(
-    val original: String,
-    val translate: String,
-    var correctAnswersCount: Int = 0,
-)
-
-fun Question.asConsoleString(): String {
-    val variants = this.variants
-        .mapIndexed { index: Int, word: Word -> " ${index + 1} - ${word.translate}" }
-        .joinToString(separator = "\n")
-    return this.correctAnswer.original + "\n" + variants + "\n 0 - выйти в меню"
-}
-
 fun main() {
 
     val trainer = try {
-        LearnWordsTrainer(learnedCount = 3, numberOfAnswers = 4)
+        LearnWordsTrainer(
+            learnedCount = 3,
+            numberOfAnswers = 4,
+            fileName = "words.txt",
+        )
     } catch (e: Exception) {
         println("Невозможно загрузить словарь")
         return
@@ -39,13 +30,13 @@ fun main() {
 
                         if (trainer.checkAnswer(userAnswerInput?.minus(1))) {
                             println("Правильно!\n")
-                        } else
+                        } else {
                             println(
                                 "Неправильно! - ${question.correctAnswer.original} - это ${
-                                    question
-                                        .correctAnswer.translate
+                                    question.correctAnswer.translate
                                 }\n"
                             )
+                        }
                     }
                 }
             }
@@ -59,4 +50,11 @@ fun main() {
             else -> println("Введите 1, 2 или 0")
         }
     }
+}
+
+fun Question.asConsoleString(): String {
+    val variants = this.variants
+        .mapIndexed { index: Int, word: Word -> " ${index + 1} - ${word.translate}" }
+        .joinToString(separator = "\n")
+    return this.correctAnswer.original + "\n" + variants + "\n 0 - выйти в меню"
 }
