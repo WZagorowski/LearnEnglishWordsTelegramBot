@@ -31,11 +31,8 @@ fun main() {
                         if (trainer.checkAnswer(userAnswerInput?.minus(1))) {
                             println("Правильно!\n")
                         } else {
-                            println(
-                                "Неправильно! - ${question.correctAnswer.original} - это ${
-                                    question.correctAnswer.translate
-                                }\n"
-                            )
+                            val answer = question.correctAnswer
+                            println("Неправильно! - ${answer.original} - это ${answer.translate}\n")
                         }
                     }
                 }
