@@ -7,6 +7,7 @@ fun main(args: Array<String>) {
     while (true) {
         Thread.sleep(2000)
         val updates: String = service.getUpdates(updateId)
+        println(updates)
 
         val updateIdRegex: Regex = "\"update_id\":(.+?),".toRegex()
         val updateIdString = updateIdRegex.find(updates)?.groups?.get(1)?.value
