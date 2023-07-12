@@ -67,30 +67,7 @@ class TelegramBotService(private val botToken: String) {
                 "text": "${question.correctAnswer.original}",
                 "reply_markup": {
                     "inline_keyboard": [
-                        [
-                            {
-                                "text": "${question.variants[0].translate}",
-                                "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}0"
-                            }
-                        ],
-                        [
-                            {
-                                "text": "${question.variants[1].translate}",
-                                "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}1"
-                            }
-                        ],
-                        [
-                            {
-                                "text": "${question.variants[2].translate}",
-                                "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}2"
-                            }
-                        ],
-                        [
-                            {
-                                "text": "${question.variants[3].translate}",
-                                "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}3"
-                            }
-                        ]
+                        ${question.asJsonString()}
                     ]
                 }
             }
@@ -104,4 +81,20 @@ class TelegramBotService(private val botToken: String) {
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
     }
+}
+
+fun Question.asJsonString(): String {
+    val lines = variants
+        .mapIndexed { index: Int, word: Word ->
+            """
+                [
+                    {
+                        "text": "${word.translate}",
+                        "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}$index"
+                    }
+                ],
+        """.trimIndent()
+        }
+        .joinToString(separator = "\n").dropLast(1)
+    return lines
 }
