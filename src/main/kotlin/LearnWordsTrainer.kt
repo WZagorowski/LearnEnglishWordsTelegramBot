@@ -1,6 +1,8 @@
+import kotlinx.serialization.Serializable
 import java.io.File
 import java.io.FileWriter
 
+@Serializable
 data class Word(
     val original: String,
     val translate: String,
