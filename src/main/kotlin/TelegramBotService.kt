@@ -92,9 +92,9 @@ fun Question.asJsonString(): String {
                         "text": "${word.translate}",
                         "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}$index"
                     }
-                ],
+                ]
         """.trimIndent()
         }
-        .joinToString(separator = "\n").dropLast(1)
+        .joinToString(separator = ",\n")
     return lines
 }
