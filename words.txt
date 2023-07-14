@@ -44,13 +44,13 @@ present|присутствующий|0
 absent|отсутствующий|0
 awake|проснувшийся|0
 busy|занятый|0
-the same|такой же|0
+same|такой же|0
 brave|храбрый|0
 tough|жесткий|0
 advance|продвигать|0
 spill|проливать|0
 disease|болезнь|0
-slap|шлепок|0
+compare|сравнивать|0
 pressure|давление|0
 sweep|мести|0
 fluid|жидкость|0
