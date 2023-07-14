@@ -45,6 +45,9 @@ class TelegramBotService(private val botToken: String) {
                     listOf(
                         InlineKeyboard(text = "Изучать слова", callbackData = LEARNING),
                         InlineKeyboard(text = "Статистика", callbackData = STATISTICS),
+                    ),
+                    listOf(
+                        InlineKeyboard(text = "Сбросить прогресс", callbackData = RESET_CLICKED),
                     )
                 )
             )
@@ -67,11 +70,17 @@ class TelegramBotService(private val botToken: String) {
             chatId = chatId,
             text = question.correctAnswer.original,
             replyMarkup = ReplyMarkup(
-                listOf(question.variants.mapIndexed { index, word ->
-                    InlineKeyboard(
-                        text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index"
+                question.variants.mapIndexed { index, word ->
+                    listOf(
+                        InlineKeyboard(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
                     )
-                })
+                }.plus(
+                    listOf(
+                        listOf(
+                            InlineKeyboard(text = "Вернуться в меню", callbackData = START)
+                        )
+                    )
+                )
             )
         )
         val requestBodyString = json.encodeToString(requestBody)
