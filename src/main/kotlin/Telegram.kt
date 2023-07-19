@@ -76,7 +76,8 @@ fun main(args: Array<String>) {
 
     while (true) {
         Thread.sleep(2000)
-        val responseString: String = service.getUpdates(lastUpdateId)
+        val result = runCatching { service.getUpdates(lastUpdateId) }
+        val responseString: String = result.getOrNull() ?: continue
         println(responseString)
 
         val response: Response = service.json.decodeFromString(responseString)
