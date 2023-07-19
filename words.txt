@@ -1,4 +1,100 @@
-hello|привет|2
-dog|собака|1
-cat|кошка|3
-weird|странный|3
+define|определять|0
+solve|решать|0
+serve|служить|0
+empty|пустой|0
+full|полный|0
+narrow|узкий|0
+wide|широкий|0
+heavy|тяжелый (по весу)|0
+light|светлый, легкий|0
+sour|кислый|0
+enough|достаточно|0
+rather|скорее|0
+thin|тонкий|0
+thick|толстый, густой|0
+watery|жидкий|0
+ugly|уродливый|0
+cute|милый|0
+difficult|сложный|0
+cheap|дешевый|0
+expensive|дорогой|0
+shallow|мелкий|0
+sad|грустный|0
+low|низкий|0
+poor|бедный|0
+safe|безопасный|0
+weak|слабый|0
+tight|тесный|0
+loose|свободный|0
+noisy|шумный|0
+quiet|тихтий|0
+liquid|жидкий|0
+solid|твердый|0
+polite|вежливый|0
+rude|грубый|0
+common|общий|0
+rare|редкий|0
+rough|грубый|0
+smooth|гладкий|0
+tiny|крошечный|0
+huge|огромный|0
+tame|приручить, ручной|0
+sick, ill|больной|0
+present|присутствующий|0
+absent|отсутствующий|0
+awake|проснувшийся|0
+busy|занятый|0
+same|такой же|0
+brave|храбрый|0
+tough|жесткий|0
+advance|продвигать|0
+spill|проливать|0
+disease|болезнь|0
+compare|сравнивать|0
+pressure|давление|0
+sweep|мести|0
+fluid|жидкость|0
+precise|точный|0
+adjust|регулировать|0
+constraint|ограничение|0
+path|путь|0
+access|доступ|0
+leave|оставлять|0
+sync|синхронизировать|0
+theme|тема|0
+frame|рамка|0
+shape|форма|0
+footer|нижний колонтитул|0
+dashboard|панель приборов|0
+sequence|последовательность|0
+expression|выражение|0
+within|в пределах|0
+sample|образец|0
+throw|бросать|0
+thread|нить|0
+bound|граница|0
+runtime|время выполнения|0
+turn|повернуть|0
+essential|существенный|0
+parties|стороны|0
+particularly|особенно|0
+common|общий|0
+enable|давать возможность|0
+separate|отдельный|0
+consist|состоять|0
+directly|напрямую|0
+default|по умолчанию|0
+script|сценарий|0
+various|различный|0
+below|ниже|0
+reflect|отражать|0
+manually|вручную|0
+match|соответствовать|0
+note|примечание|0
+notice|уведомление|0
+also|также|0
+apply|применять|0
+require|требовать|0
+query|запрос|0
+response|ответ|0
+remedies|средства|0

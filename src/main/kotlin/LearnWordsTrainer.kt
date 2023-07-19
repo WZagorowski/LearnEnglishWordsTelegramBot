@@ -1,6 +1,7 @@
+import kotlinx.serialization.Serializable
 import java.io.File
-import java.io.FileWriter
 
+@Serializable
 data class Word(
     val original: String,
     val translate: String,
@@ -19,9 +20,9 @@ data class Question(
 )
 
 class LearnWordsTrainer(
+    private val fileName: String = "words.txt",
     private val learnedCount: Int = 3,
     private val numberOfAnswers: Int = 4,
-    private val fileName: String = "words.txt",
 ) {
     var question: Question? = null
     private val dictionary = loadDictionary()
@@ -56,7 +57,7 @@ class LearnWordsTrainer(
             val correctAnswerId = it.variants.indexOf(it.correctAnswer)
             if (correctAnswerId == userAnswerIndex) {
                 it.correctAnswer.correctAnswersCount++
-                saveDictionary(dictionary)
+                saveDictionary()
                 true
             } else {
                 false
@@ -66,8 +67,11 @@ class LearnWordsTrainer(
 
     private fun loadDictionary(): List<Word> {
         try {
-            val dictionary = mutableListOf<Word>()
             val wordsFile = File(fileName)
+            if (!wordsFile.exists()) {
+                File("words.txt").copyTo(wordsFile)
+            }
+            val dictionary = mutableListOf<Word>()
 
             wordsFile.readLines().forEach {
                 val splitLine = it.split("|")
@@ -79,11 +83,16 @@ class LearnWordsTrainer(
         }
     }
 
-    private fun saveDictionary(words: List<Word>) {
-        val updatedWordsFile = FileWriter(fileName)
+    private fun saveDictionary() {
+        val updatedWordsFile = File(fileName)
+        updatedWordsFile.writeText("")
+        for (word in dictionary) {
+            updatedWordsFile.appendText("${word.original}|${word.translate}|${word.correctAnswersCount}\n")
+        }
+    }
 
-        for (i in words.indices)
-            updatedWordsFile.write("${words[i].original}|${words[i].translate}|${words[i].correctAnswersCount}\n")
-        updatedWordsFile.close()
+    fun resetProgress() {
+        dictionary.forEach { it.correctAnswersCount = 0 }
+        saveDictionary()
     }
 }
