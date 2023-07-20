@@ -32,6 +32,17 @@ class TelegramBotService(
         return getPostResponse(sendMessage, requestBodyString).body()
     }
 
+    private fun sendAndDeleteMessage(chatId: Long, messageId: Long, message: String): String {
+        val sendMessage = "$apiTelegramLink/bot$botToken/editMessageText"
+        val requestBody = SendMessageRequest(
+            chatId = chatId,
+            messageId = messageId,
+            text = message,
+        )
+        val requestBodyString = json.encodeToString(requestBody)
+        return getPostResponse(sendMessage, requestBodyString).body()
+    }
+
     fun sendMenu(chatId: Long): String {
         val sendMessage = "$apiTelegramLink/bot$botToken/SendMessage"
         val requestBody = SendMessageRequest(
@@ -53,27 +64,39 @@ class TelegramBotService(
         return getPostResponse(sendMessage, requestBodyString).body()
     }
 
-    fun sendQuestion(chatId: Long, question: Question): String {
+    fun sendFirstQuestion(chatId: Long, question: Question): String {
         val urlSendMessage = "$apiTelegramLink/bot$botToken/SendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
-            text = question.correctAnswer.original,
+            text = "Выбери правильный перевод слова:\n\n${question.correctAnswer.original}",
             replyMarkup = ReplyMarkup(
                 question.variants.mapIndexed { index, word ->
                     listOf(
                         InlineKeyboard(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
                     )
-                }.plus(
-                    listOf(
-                        listOf(
-                            InlineKeyboard(text = "Вернуться в меню", callbackData = START)
-                        )
-                    )
-                )
+                }
             )
         )
         val requestBodyString = json.encodeToString(requestBody)
         return getPostResponse(urlSendMessage, requestBodyString).body()
+    }
+
+    fun editAndSendQuestion(chatId: Long, messageId: Long, question: Question, text: String): String {
+        val urlEditMessage = "$apiTelegramLink/bot$botToken/editMessageReplyMarkup"
+        sendAndDeleteMessage(chatId, messageId, "$text\n\n${question.correctAnswer.original}")
+        val requestBody = SendMessageRequest(
+            chatId = chatId,
+            messageId = messageId,
+            replyMarkup = ReplyMarkup(
+                question.variants.mapIndexed { index, word ->
+                    listOf(
+                        InlineKeyboard(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
+                    )
+                }
+            )
+        )
+        val requestBodyString = json.encodeToString(requestBody)
+        return getPostResponse(urlEditMessage, requestBodyString).body()
     }
 
     private fun getPostResponse(url: String, requestBodyString: String): HttpResponse<String> {
