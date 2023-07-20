@@ -14,6 +14,8 @@ data class Update(
 
 @Serializable
 data class Response(
+    @SerialName("ok")
+    var isOk: Boolean,
     @SerialName("result")
     val result: List<Update>,
 )
@@ -85,6 +87,10 @@ fun main(args: Array<String>) {
         println(responseString)
 
         val response: Response = service.json.decodeFromString(responseString)
+        if (!response.isOk) {
+            Thread.sleep(5000)
+            continue
+        }
         if (response.result.isEmpty()) continue
 
         val sortedUpdates = response.result.sortedBy { it.updateId }
@@ -127,7 +133,7 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
                 service,
                 chatId,
                 messageId,
-                "Правильно :)",
+                "Правильно!",
             )
         } else {
             val rightQuestion = trainer.question?.correctAnswer
