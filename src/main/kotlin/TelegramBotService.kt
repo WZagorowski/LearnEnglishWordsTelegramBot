@@ -1,15 +1,16 @@
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 
 class TelegramBotService(
     private val botToken: String,
     val json: Json = Json { ignoreUnknownKeys = true },
 ) {
-    private val client: HttpClient = HttpClient.newBuilder().build()
+    private val client = OkHttpClient()
 
     companion object {
         const val apiTelegramLink = "https://api.telegram.org"
@@ -17,9 +18,13 @@ class TelegramBotService(
 
     fun getUpdates(updateId: Long): String {
         val urlGetUpdates = "$apiTelegramLink/bot$botToken/getUpdates?offset=$updateId"
-        val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
-        val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
-        return response.body()
+        val request = Request.Builder().url(urlGetUpdates).build()
+        val response = client.newCall(request).execute()
+
+        if (!response.isSuccessful)
+            throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+        else
+            return response.body!!.string()
     }
 
     fun sendMessage(chatId: Long, message: String): String {
@@ -29,7 +34,7 @@ class TelegramBotService(
             text = message,
         )
         val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(sendMessage, requestBodyString).body()
+        return getPostResponse(sendMessage, requestBodyString)
     }
 
     private fun sendAndDeleteMessage(chatId: Long, messageId: Long, message: String): String {
@@ -40,7 +45,7 @@ class TelegramBotService(
             text = message,
         )
         val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(sendMessage, requestBodyString).body()
+        return getPostResponse(sendMessage, requestBodyString)
     }
 
     fun sendMenu(chatId: Long): String {
@@ -61,7 +66,7 @@ class TelegramBotService(
             )
         )
         val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(sendMessage, requestBodyString).body()
+        return getPostResponse(sendMessage, requestBodyString)
     }
 
     fun sendFirstQuestion(chatId: Long, question: Question): String {
@@ -78,7 +83,7 @@ class TelegramBotService(
             )
         )
         val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(urlSendMessage, requestBodyString).body()
+        return getPostResponse(urlSendMessage, requestBodyString)
     }
 
     fun editAndSendQuestion(chatId: Long, messageId: Long, question: Question, text: String): String {
@@ -96,14 +101,17 @@ class TelegramBotService(
             )
         )
         val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(urlEditMessage, requestBodyString).body()
+        return getPostResponse(urlEditMessage, requestBodyString)
     }
 
-    private fun getPostResponse(url: String, requestBodyString: String): HttpResponse<String> {
-        val postRequest: HttpRequest = HttpRequest.newBuilder().uri(URI.create(url))
-            .header("Content-type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(requestBodyString))
-            .build()
-        return client.send(postRequest, HttpResponse.BodyHandlers.ofString())
+    private fun getPostResponse(url: String, requestBodyString: String): String {
+        val body = requestBodyString.toRequestBody("application/json; charset=utf-8".toMediaType())
+        val request = Request.Builder().url(url).post(body).build()
+        val response = client.newCall(request).execute()
+
+        if (!response.isSuccessful)
+            throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+        else
+            return response.body!!.string()
     }
 }
