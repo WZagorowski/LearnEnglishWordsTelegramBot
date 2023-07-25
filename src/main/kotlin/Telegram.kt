@@ -70,7 +70,7 @@ data class InlineKeyboard(
     val text: String,
 )
 
-fun main(args: Array<String>) {
+suspend fun main(args: Array<String>) {
 
     val botToken = args[0]
     val service = TelegramBotService(
@@ -83,7 +83,7 @@ fun main(args: Array<String>) {
     while (true) {
         Thread.sleep(2000)
         val result = runCatching { service.getUpdates(lastUpdateId) }
-        val responseString: String = result.getOrNull() ?: continue
+        val responseString: String = result.getOrNull().toString()
         println(responseString)
 
         val response: Response = service.json.decodeFromString(responseString)
