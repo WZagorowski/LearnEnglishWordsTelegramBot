@@ -1,3 +1,4 @@
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -71,7 +72,7 @@ data class InlineKeyboard(
     val text: String,
 )
 
-fun main(args: Array<String>) = runBlocking{
+fun main(args: Array<String>): Unit = runBlocking{
 
     val botToken = args[0]
     val service = TelegramBotService(
@@ -81,22 +82,24 @@ fun main(args: Array<String>) = runBlocking{
     var lastUpdateId = 0L
     val trainers = HashMap<Long, LearnWordsTrainer>()
 
-    while (true) {
-        Thread.sleep(2000)
-        val result = runCatching { service.getUpdates(lastUpdateId) }
-        val responseString: String = result.getOrNull() ?: continue
-        println(responseString)
+    launch {
+        while (true) {
+            Thread.sleep(2000)
+            val result = runCatching { service.getUpdates(lastUpdateId) }
+            val responseString: String = result.getOrNull() ?: continue
+            println(responseString)
 
-        val response: Response = service.json.decodeFromString(responseString)
-        if (!response.isOk) {
-            Thread.sleep(5000)
-            continue
+            val response: Response = service.json.decodeFromString(responseString)
+            if (!response.isOk) {
+                Thread.sleep(5000)
+                continue
+            }
+            if (response.result.isEmpty()) continue
+
+            val sortedUpdates = response.result.sortedBy { it.updateId }
+            sortedUpdates.forEach { handleUpdate(it, trainers, service) }
+            lastUpdateId = sortedUpdates.last().updateId + 1
         }
-        if (response.result.isEmpty()) continue
-
-        val sortedUpdates = response.result.sortedBy { it.updateId }
-        sortedUpdates.forEach { handleUpdate(it, trainers, service) }
-        lastUpdateId = sortedUpdates.last().updateId + 1
     }
 }
 
