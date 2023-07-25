@@ -1,3 +1,4 @@
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -70,7 +71,7 @@ data class InlineKeyboard(
     val text: String,
 )
 
-suspend fun main(args: Array<String>) {
+fun main(args: Array<String>) = runBlocking{
 
     val botToken = args[0]
     val service = TelegramBotService(
@@ -83,7 +84,7 @@ suspend fun main(args: Array<String>) {
     while (true) {
         Thread.sleep(2000)
         val result = runCatching { service.getUpdates(lastUpdateId) }
-        val responseString: String = result.getOrNull().toString()
+        val responseString: String = result.getOrNull() ?: continue
         println(responseString)
 
         val response: Response = service.json.decodeFromString(responseString)
