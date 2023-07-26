@@ -1,4 +1,3 @@
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -82,24 +81,22 @@ fun main(args: Array<String>): Unit = runBlocking{
     var lastUpdateId = 0L
     val trainers = HashMap<Long, LearnWordsTrainer>()
 
-    launch {
-        while (true) {
-            Thread.sleep(2000)
-            val result = runCatching { service.getUpdates(lastUpdateId) }
-            val responseString: String = result.getOrNull() ?: continue
-            println(responseString)
+    while (true) {
+        Thread.sleep(2000)
+        val result = runCatching { service.getUpdates(lastUpdateId) }
+        val responseString: String = result.getOrNull() ?: continue
+        println(responseString)
 
-            val response: Response = service.json.decodeFromString(responseString)
-            if (!response.isOk) {
-                Thread.sleep(5000)
-                continue
-            }
-            if (response.result.isEmpty()) continue
-
-            val sortedUpdates = response.result.sortedBy { it.updateId }
-            sortedUpdates.forEach { handleUpdate(it, trainers, service) }
-            lastUpdateId = sortedUpdates.last().updateId + 1
+        val response: Response = service.json.decodeFromString(responseString)
+        if (!response.isOk) {
+            Thread.sleep(5000)
+            continue
         }
+        if (response.result.isEmpty()) continue
+
+        val sortedUpdates = response.result.sortedBy { it.updateId }
+        sortedUpdates.forEach { handleUpdate(it, trainers, service) }
+        lastUpdateId = sortedUpdates.last().updateId + 1
     }
 }
 
