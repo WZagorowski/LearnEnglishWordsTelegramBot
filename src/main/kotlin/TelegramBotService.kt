@@ -1,17 +1,9 @@
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import java.io.IOException
 
 class TelegramBotService(
@@ -24,34 +16,15 @@ class TelegramBotService(
         const val apiTelegramLink = "https://api.telegram.org"
     }
 
-    suspend fun getUpdates(updateId: Long): String = withContext(Dispatchers.IO) {
+    fun getUpdates(updateId: Long): String {
         val urlGetUpdates = "$apiTelegramLink/bot$botToken/getUpdates?offset=$updateId"
         val request = Request.Builder().url(urlGetUpdates).build()
+        val response = client.newCall(request).execute()
 
-        suspendCoroutine { continuation ->
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    continuation.resumeWithException(e)
-                }
-
-                override fun onResponse(call: Call, response: Response) {
-                    response.use {
-                        if (!response.isSuccessful) {
-                            continuation.resumeWithException(
-                                IOException("Запрос не был успешен: ${response.code} ${response.message}")
-                            )
-                        } else {
-                            val responseBodyString = response.body?.string()
-                            if (responseBodyString != null) {
-                                continuation.resume(responseBodyString)
-                            } else {
-                                continuation.resumeWithException(IllegalStateException("Тело ответа пустое"))
-                            }
-                        }
-                    }
-                }
-            })
-        }
+        if (!response.isSuccessful)
+            throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+        else
+            return response.body?.string() ?: throw IllegalStateException("Тело ответа пустое")
     }
 
     fun sendMessage(chatId: Long, message: String): String {
