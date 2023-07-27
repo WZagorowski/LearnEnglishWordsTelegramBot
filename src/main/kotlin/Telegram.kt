@@ -1,4 +1,3 @@
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -71,7 +70,7 @@ data class InlineKeyboard(
     val text: String,
 )
 
-fun main(args: Array<String>): Unit = runBlocking{
+fun main(args: Array<String>) {
 
     val botToken = args[0]
     val service = TelegramBotService(
