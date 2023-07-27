@@ -14,8 +14,10 @@ data class Update(
 
 @Serializable
 data class Response(
+    @SerialName("ok")
+    var isOk: Boolean,
     @SerialName("result")
-    val result: List<Update>
+    val result: List<Update>,
 )
 
 @Serializable
@@ -24,6 +26,8 @@ data class Message(
     val text: String,
     @SerialName("chat")
     val chat: Chat,
+    @SerialName("message_id")
+    val messageId: Long,
 )
 
 @Serializable
@@ -44,8 +48,10 @@ data class Chat(
 data class SendMessageRequest(
     @SerialName("chat_id")
     val chatId: Long,
+    @SerialName("message_id")
+    val messageId: Long? = null,
     @SerialName("text")
-    val text: String,
+    val text: String? = null,
     @SerialName("reply_markup")
     val replyMarkup: ReplyMarkup? = null,
 )
@@ -81,6 +87,10 @@ fun main(args: Array<String>) {
         println(responseString)
 
         val response: Response = service.json.decodeFromString(responseString)
+        if (!response.isOk) {
+            Thread.sleep(5000)
+            continue
+        }
         if (response.result.isEmpty()) continue
 
         val sortedUpdates = response.result.sortedBy { it.updateId }
@@ -93,10 +103,11 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
 
     val message = update.message?.text
     val chatId = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
+    val messageId = update.message?.messageId ?: update.callbackQuery?.message?.messageId ?: return
     val data = update.callbackQuery?.data
     val trainer = trainers.getOrPut(chatId) { LearnWordsTrainer("$chatId.txt") }
 
-    if (message?.lowercase() == START || data?.lowercase() == START) {
+    if (message?.lowercase() == "/start") {
         service.sendMenu(chatId)
     }
     if (data?.lowercase() == STATISTICS) {
@@ -111,34 +122,48 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
         service.sendMessage(chatId, "Прогресс сброшен")
     }
     if (data?.lowercase() == LEARNING) {
-        checkNextQuestionAndSend(trainer, service, chatId)
+        checkNextQuestionAndSend(trainer, service, chatId, messageId, null)
     }
     if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
         val answerIndex = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
 
         if (trainer.checkAnswer(answerIndex)) {
-            service.sendMessage(
+            checkNextQuestionAndSend(
+                trainer,
+                service,
                 chatId,
+                messageId,
                 "Правильно!",
             )
         } else {
             val rightQuestion = trainer.question?.correctAnswer
-            service.sendMessage(
+            checkNextQuestionAndSend(
+                trainer,
+                service,
                 chatId,
-                "Не правильно: ${rightQuestion?.original} - ${rightQuestion?.translate}",
+                messageId,
+                "Увы, но нет :(\n${rightQuestion?.original} - ${rightQuestion?.translate}",
             )
         }
-        checkNextQuestionAndSend(trainer, service, chatId)
     }
 }
 
-fun checkNextQuestionAndSend(trainer: LearnWordsTrainer, service: TelegramBotService, chatId: Long) {
+fun checkNextQuestionAndSend(
+    trainer: LearnWordsTrainer,
+    service: TelegramBotService,
+    chatId: Long,
+    messageId: Long,
+    text: String?,
+) {
     val question = trainer.getNextQuestion()
 
     if (question == null) {
         service.sendMessage(chatId, "Вы выучили все слова в базе")
     } else {
-        service.sendQuestion(chatId, question)
+        if (text == null)
+            service.sendFirstQuestion(chatId, question)
+        else
+            service.editAndSendQuestion(chatId, messageId, question, text)
     }
 }
 
@@ -146,4 +171,3 @@ const val LEARNING = "learn_words_clicked"
 const val STATISTICS = "statistics_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
 const val RESET_CLICKED = "reset_clicked"
-const val START = "/start"
