@@ -23,7 +23,7 @@ data class Response(
 @Serializable
 data class Message(
     @SerialName("text")
-    val text: String,
+    val text: String? = null,
     @SerialName("chat")
     val chat: Chat,
     @SerialName("message_id")
@@ -48,10 +48,22 @@ data class Chat(
 data class SendMessageRequest(
     @SerialName("chat_id")
     val chatId: Long,
-    @SerialName("message_id")
-    val messageId: Long? = null,
     @SerialName("text")
     val text: String? = null,
+    @SerialName("reply_markup")
+    val replyMarkup: ReplyMarkup? = null,
+)
+
+@Serializable
+data class SendPhotoRequest(
+    @SerialName("chat_id")
+    val chatId: Long,
+    @SerialName("photo")
+    val urlPhoto: String,
+    @SerialName("caption")
+    val caption: String,
+    @SerialName("has_spoiler")
+    val isHasSpoiler: Boolean,
     @SerialName("reply_markup")
     val replyMarkup: ReplyMarkup? = null,
 )
@@ -68,6 +80,17 @@ data class InlineKeyboard(
     val callbackData: String,
     @SerialName("text")
     val text: String,
+)
+
+@Serializable
+data class PhotoResponse(
+    @SerialName("items")
+    val searchItems: List<Item>,
+)
+@Serializable
+data class Item(
+    @SerialName("link")
+    val link: String,
 )
 
 fun main(args: Array<String>) {
@@ -122,17 +145,17 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
         service.sendMessage(chatId, "Прогресс сброшен")
     }
     if (data?.lowercase() == LEARNING) {
-        checkNextQuestionAndSend(trainer, service, chatId, messageId, null)
+        checkNextQuestionAndSend(trainer, service, chatId, "Выбери правильный перевод с английского.")
     }
     if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
         val answerIndex = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
+        service.deleteMessage(chatId, messageId)
 
         if (trainer.checkAnswer(answerIndex)) {
             checkNextQuestionAndSend(
                 trainer,
                 service,
                 chatId,
-                messageId,
                 "Правильно!",
             )
         } else {
@@ -141,7 +164,6 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
                 trainer,
                 service,
                 chatId,
-                messageId,
                 "Увы, но нет :(\n${rightQuestion?.original} - ${rightQuestion?.translate}",
             )
         }
@@ -152,18 +174,19 @@ fun checkNextQuestionAndSend(
     trainer: LearnWordsTrainer,
     service: TelegramBotService,
     chatId: Long,
-    messageId: Long,
-    text: String?,
+    text: String,
 ) {
     val question = trainer.getNextQuestion()
 
     if (question == null) {
         service.sendMessage(chatId, "Вы выучили все слова в базе")
     } else {
-        if (text == null)
-            service.sendFirstQuestion(chatId, question)
-        else
-            service.editAndSendQuestion(chatId, messageId, question, text)
+        val searchPhoto = GoogleSearchService()
+        val responseString = searchPhoto.getImageLink(question.correctAnswer.original)
+        val response: PhotoResponse = searchPhoto.json.decodeFromString(responseString)
+        val urlPhoto = response.searchItems[0].link
+
+        service.sendPhoto(chatId, urlPhoto, question, text)
     }
 }
 
