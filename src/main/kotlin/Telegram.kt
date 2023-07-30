@@ -1,6 +1,8 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.File
+import java.io.FileOutputStream
 
 @Serializable
 data class Update(
@@ -65,7 +67,7 @@ data class SendPhotoRequest(
     @SerialName("has_spoiler")
     val isHasSpoiler: Boolean,
     @SerialName("reply_markup")
-    val replyMarkup: ReplyMarkup? = null,
+    val replyMarkup: ReplyMarkup,
 )
 
 @Serializable
@@ -87,6 +89,7 @@ data class PhotoResponse(
     @SerialName("items")
     val searchItems: List<Item>,
 )
+
 @Serializable
 data class Item(
     @SerialName("link")
@@ -96,20 +99,22 @@ data class Item(
 fun main(args: Array<String>) {
 
     val botToken = args[0]
-    val service = TelegramBotService(
+    val searchKey = args[1]
+    val botService = TelegramBotService(
         botToken = botToken,
         json = Json { ignoreUnknownKeys = true },
     )
+    val googleService = GoogleCloudService(key = searchKey)
     var lastUpdateId = 0L
     val trainers = HashMap<Long, LearnWordsTrainer>()
 
     while (true) {
         Thread.sleep(2000)
-        val result = runCatching { service.getUpdates(lastUpdateId) }
+        val result = runCatching { botService.getUpdates(lastUpdateId) }
         val responseString: String = result.getOrNull() ?: continue
         println(responseString)
 
-        val response: Response = service.json.decodeFromString(responseString)
+        val response: Response = botService.json.decodeFromString(responseString)
         if (!response.isOk) {
             Thread.sleep(5000)
             continue
@@ -117,13 +122,17 @@ fun main(args: Array<String>) {
         if (response.result.isEmpty()) continue
 
         val sortedUpdates = response.result.sortedBy { it.updateId }
-        sortedUpdates.forEach { handleUpdate(it, trainers, service) }
+        sortedUpdates.forEach { handleUpdate(it, trainers, botService, googleService) }
         lastUpdateId = sortedUpdates.last().updateId + 1
     }
 }
 
-fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, service: TelegramBotService) {
-
+fun handleUpdate(
+    update: Update,
+    trainers: HashMap<Long, LearnWordsTrainer>,
+    botService: TelegramBotService,
+    googleService: GoogleCloudService,
+) {
     val message = update.message?.text
     val chatId = update.message?.chat?.id ?: update.callbackQuery?.message?.chat?.id ?: return
     val messageId = update.message?.messageId ?: update.callbackQuery?.message?.messageId ?: return
@@ -131,30 +140,32 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
     val trainer = trainers.getOrPut(chatId) { LearnWordsTrainer("$chatId.txt") }
 
     if (message?.lowercase() == "/start") {
-        service.sendMenu(chatId)
+        botService.sendMenu(chatId)
     }
     if (data?.lowercase() == STATISTICS) {
         val statistics = trainer.getStatistics()
-        service.sendMessage(
+        botService.sendMessage(
             chatId,
             "Выучено ${statistics.learned} из ${statistics.total} слов | ${statistics.percent}%"
         )
     }
     if (data?.lowercase() == RESET_CLICKED) {
         trainer.resetProgress()
-        service.sendMessage(chatId, "Прогресс сброшен")
+        botService.sendMessage(chatId, "Прогресс сброшен")
     }
     if (data?.lowercase() == LEARNING) {
-        checkNextQuestionAndSend(trainer, service, chatId, "Выбери правильный перевод с английского.")
+        checkNextQuestionAndSend(trainer, botService, googleService, chatId, "Выбери правильный перевод")
     }
     if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
         val answerIndex = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
-        service.deleteMessage(chatId, messageId)
+        botService.deleteMessage(chatId, messageId)
+        botService.deleteMessage(chatId, messageId + 1)
 
         if (trainer.checkAnswer(answerIndex)) {
             checkNextQuestionAndSend(
                 trainer,
-                service,
+                botService,
+                googleService,
                 chatId,
                 "Правильно!",
             )
@@ -162,9 +173,10 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
             val rightQuestion = trainer.question?.correctAnswer
             checkNextQuestionAndSend(
                 trainer,
-                service,
+                botService,
+                googleService,
                 chatId,
-                "Увы, но нет :(\n${rightQuestion?.original} - ${rightQuestion?.translate}",
+                "Не правильно!\n${rightQuestion?.original} - ${rightQuestion?.translate}",
             )
         }
     }
@@ -172,21 +184,32 @@ fun handleUpdate(update: Update, trainers: HashMap<Long, LearnWordsTrainer>, ser
 
 fun checkNextQuestionAndSend(
     trainer: LearnWordsTrainer,
-    service: TelegramBotService,
+    botService: TelegramBotService,
+    googleService: GoogleCloudService,
     chatId: Long,
     text: String,
 ) {
     val question = trainer.getNextQuestion()
 
     if (question == null) {
-        service.sendMessage(chatId, "Вы выучили все слова в базе")
+        botService.sendMessage(chatId, "Вы выучили все слова в базе")
     } else {
-        val searchPhoto = GoogleSearchService()
-        val responseString = searchPhoto.getImageLink(question.correctAnswer.original)
-        val response: PhotoResponse = searchPhoto.json.decodeFromString(responseString)
+        val responseString = googleService.getPhotoItems(question.correctAnswer.original)
+        val response: PhotoResponse = googleService.json.decodeFromString(responseString)
         val urlPhoto = response.searchItems[0].link
+        val urlPhotoReserve = response.searchItems[1].link
 
-        service.sendPhoto(chatId, urlPhoto, question, text)
+        botService.sendPhoto(chatId, urlPhoto, urlPhotoReserve, question, text)
+
+        val responseSpeech = googleService.getAudioFile(question.correctAnswer.original)
+        val audioFilePath = "${googleService.path}audio$chatId.mp3"
+        val audioContent = responseSpeech.toByteArray()
+
+        FileOutputStream(audioFilePath).use { fileOutputStream ->
+            fileOutputStream.write(audioContent)
+        }
+        val audioFile = File(audioFilePath)
+        botService.sendAudio(chatId, question, audioFile)
     }
 }
 
