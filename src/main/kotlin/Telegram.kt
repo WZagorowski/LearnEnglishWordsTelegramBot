@@ -1,6 +1,5 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 
@@ -100,11 +99,10 @@ fun main(args: Array<String>) {
 
     val botToken = args[0]
     val searchKey = args[1]
-    val botService = TelegramBotService(
-        botToken = botToken,
-        json = Json { ignoreUnknownKeys = true },
-    )
-    val googleService = GoogleCloudService(key = searchKey)
+
+    val botService = TelegramBotService(botToken = botToken)
+    val googleService = GoogleCloudService(searchKey = searchKey)
+
     var lastUpdateId = 0L
     val trainers = HashMap<Long, LearnWordsTrainer>()
 
@@ -203,13 +201,17 @@ fun checkNextQuestionAndSend(
 
         val responseSpeech = googleService.getAudioFile(question.correctAnswer.original)
         val audioFilePath = "${googleService.path}audio$chatId.mp3"
-        val audioContent = responseSpeech.toByteArray()
 
         FileOutputStream(audioFilePath).use { fileOutputStream ->
-            fileOutputStream.write(audioContent)
+            fileOutputStream.write(responseSpeech)
         }
         val audioFile = File(audioFilePath)
-        botService.sendAudio(chatId, question, audioFile)
+
+        try {
+            botService.sendAudio(chatId, question, audioFile)
+        } finally {
+            audioFile.delete()
+        }
     }
 }
 

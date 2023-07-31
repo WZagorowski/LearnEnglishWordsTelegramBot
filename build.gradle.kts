@@ -31,3 +31,7 @@ kotlin {
 application {
     mainClass.set("TelegramKt")
 }
+
+tasks.shadowJar {
+    mergeServiceFiles()
+}

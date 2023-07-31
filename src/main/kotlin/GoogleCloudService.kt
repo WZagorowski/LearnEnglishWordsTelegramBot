@@ -8,7 +8,7 @@ import java.io.File
 import java.io.FileInputStream
 
 class GoogleCloudService(
-    private val key: String,
+    private val searchKey: String,
     val path: String = "C:/Users/vladi/IdeaProjects/LearnEnglishWordsTelegramBot/",
     val json: Json = Json { ignoreUnknownKeys = true },
 ) {
@@ -20,7 +20,7 @@ class GoogleCloudService(
     }
 
     fun getPhotoItems(text: String): String {
-        val urlGetImage = "$apiGoogle?key=$key&cx=e3fd0b8afbd7746dd&q=$text$searchSettings"
+        val urlGetImage = "$apiGoogle?key=$searchKey&cx=e3fd0b8afbd7746dd&q=$text$searchSettings"
         val request = Request.Builder().url(urlGetImage).build()
         photoClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
@@ -31,28 +31,28 @@ class GoogleCloudService(
         }
     }
 
-    fun getAudioFile(text: String): SynthesizeSpeechResponse {
-        val input = SynthesisInput.newBuilder().setText(text).build()
-
-        val voice = VoiceSelectionParams.newBuilder()
-            .setLanguageCode("en-US")
-            .setSsmlGender(SsmlVoiceGender.MALE)
-            .build()
-
-        val audioConfig = AudioConfig.newBuilder()
-            .setAudioEncoding(AudioEncoding.MP3)
-            .build()
+    fun getAudioFile(text: String): ByteArray {
 
         val verification = FileInputStream(File("${path}googlespeech.json"))
-        val textToSpeechSettings = TextToSpeechSettings.newBuilder()
-            .setCredentialsProvider { GoogleCredentials.fromStream(verification) }
-            .build()
+        val credentials = GoogleCredentials.fromStream(verification)
 
-        val speechClient = TextToSpeechClient.create(textToSpeechSettings)
+        TextToSpeechClient.create(TextToSpeechSettings.newBuilder().setCredentialsProvider { credentials }.build())
+            .use { speechClient ->
+                val input = SynthesisInput.newBuilder().setText(text).build()
 
-        val response = speechClient.synthesizeSpeech(input, voice, audioConfig)
-            ?: throw IllegalStateException("Тело ответа пустое")
-        speechClient.close()
-        return response
+                val voice = VoiceSelectionParams.newBuilder()
+                    .setLanguageCode("en-US")
+                    .setSsmlGender(SsmlVoiceGender.MALE)
+                    .build()
+
+                val audioConfig = AudioConfig.newBuilder()
+                    .setAudioEncoding(AudioEncoding.MP3)
+                    .build()
+
+                val response = speechClient.synthesizeSpeech(input, voice, audioConfig)
+                    ?: throw IllegalStateException("Тело ответа пустое")
+
+                return response.audioContent.toByteArray()
+            }
     }
 }
