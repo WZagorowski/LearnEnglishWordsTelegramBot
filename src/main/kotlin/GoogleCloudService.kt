@@ -32,23 +32,18 @@ class GoogleCloudService(
     }
 
     fun getAudioFile(text: String): ByteArray {
-
-        val verification = FileInputStream(File("${path}googlespeech.json"))
-        val credentials = GoogleCredentials.fromStream(verification)
+        val keyPath = FileInputStream(File("${path}googlespeech.json"))
+        val credentials = GoogleCredentials.fromStream(keyPath)
 
         TextToSpeechClient.create(TextToSpeechSettings.newBuilder().setCredentialsProvider { credentials }.build())
             .use { speechClient ->
-                val input = SynthesisInput.newBuilder().setText(text).build()
 
+                val input = SynthesisInput.newBuilder().setText(text).build()
                 val voice = VoiceSelectionParams.newBuilder()
                     .setLanguageCode("en-US")
                     .setSsmlGender(SsmlVoiceGender.MALE)
                     .build()
-
-                val audioConfig = AudioConfig.newBuilder()
-                    .setAudioEncoding(AudioEncoding.MP3)
-                    .build()
-
+                val audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.MP3).build()
                 val response = speechClient.synthesizeSpeech(input, voice, audioConfig)
                     ?: throw IllegalStateException("Тело ответа пустое")
 
