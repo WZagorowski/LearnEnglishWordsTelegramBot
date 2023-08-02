@@ -1,7 +1,5 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.io.File
-import java.io.FileOutputStream
 
 @Serializable
 data class Update(
@@ -192,26 +190,35 @@ fun checkNextQuestionAndSend(
     if (question == null) {
         botService.sendMessage(chatId, "Вы выучили все слова в базе")
     } else {
-        val responseString = googleService.getPhotoItems(question.correctAnswer.original)
-        val response: PhotoResponse = googleService.json.decodeFromString(responseString)
-        val urlPhoto = response.searchItems[0].link
-        val urlPhotoReserve = response.searchItems[1].link
+        sendPhotoWithVariants(question, botService, googleService, chatId, text)
+        sendAudio(question, botService, googleService, chatId)
+    }
+}
 
-        botService.sendPhoto(chatId, urlPhoto, urlPhotoReserve, question, text)
+fun sendPhotoWithVariants(
+    question: Question,
+    botService: TelegramBotService,
+    googleService: GoogleCloudService,
+    chatId: Long,
+    text: String,
+) {
+    val photoResponse = googleService.getPhotoItems(question.correctAnswer.original)
+    val urlPhoto = photoResponse.searchItems[0].link
+    val urlPhotoReserve = photoResponse.searchItems[1].link
+    botService.sendPhoto(chatId, urlPhoto, urlPhotoReserve, question, text)
+}
 
-        val responseSpeech = googleService.getAudioFile(question.correctAnswer.original)
-        val audioFilePath = "${googleService.path}audio$chatId.mp3"
-
-        FileOutputStream(audioFilePath).use { fileOutputStream ->
-            fileOutputStream.write(responseSpeech)
-        }
-        val audioFile = File(audioFilePath)
-
-        try {
-            botService.sendAudio(chatId, question, audioFile)
-        } finally {
-            audioFile.delete()
-        }
+fun sendAudio(
+    question: Question,
+    botService: TelegramBotService,
+    googleService: GoogleCloudService,
+    chatId: Long,
+) {
+    val audioFile = googleService.getAudioFile(chatId, question.correctAnswer.original)
+    try {
+        botService.sendAudio(chatId, question, audioFile)
+    } finally {
+        audioFile.delete()
     }
 }
 

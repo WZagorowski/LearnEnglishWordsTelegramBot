@@ -5,12 +5,11 @@ import java.io.IOException
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.texttospeech.v1.*
 import java.io.File
-import java.io.FileInputStream
 
 class GoogleCloudService(
     private val searchKey: String,
-    val path: String = "C:/Users/vladi/IdeaProjects/LearnEnglishWordsTelegramBot/",
-    val json: Json = Json { ignoreUnknownKeys = true },
+    private val mediaFolderPath: String = "C:/Users/vladi/IdeaProjects/LearnEnglishWordsTelegramBot/",
+    private val json: Json = Json { ignoreUnknownKeys = true },
 ) {
     private val photoClient = OkHttpClient()
 
@@ -19,35 +18,45 @@ class GoogleCloudService(
         const val searchSettings = "&searchType=image&imgType=clipart&imgColorType=color&num=2"
     }
 
-    fun getPhotoItems(text: String): String {
+    fun getPhotoItems(text: String): PhotoResponse {
         val urlGetImage = "$apiGoogle?key=$searchKey&cx=e3fd0b8afbd7746dd&q=$text$searchSettings"
         val request = Request.Builder().url(urlGetImage).build()
         photoClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
             } else {
-                return response.body?.string() ?: throw IllegalStateException("Тело ответа пустое")
+                return response.body?.string()
+                    ?.let { json.decodeFromString(it) }
+                    ?: throw IllegalStateException("Тело ответа пустое")
             }
         }
     }
 
-    fun getAudioFile(text: String): ByteArray {
-        val keyPath = FileInputStream(File("${path}googlespeech.json"))
-        val credentials = GoogleCredentials.fromStream(keyPath)
+    fun getAudioFile(chatId: Long, text: String): File {
+        val googleKeyStream = File(mediaFolderPath, TTS_KEY_FILENAME).inputStream()
+        val credentials = GoogleCredentials.fromStream(googleKeyStream)
+        val ttsSettings = TextToSpeechSettings.newBuilder()
+            .setCredentialsProvider { credentials }
+            .build()
 
-        TextToSpeechClient.create(TextToSpeechSettings.newBuilder().setCredentialsProvider { credentials }.build())
-            .use { speechClient ->
+        TextToSpeechClient.create(ttsSettings).use { speechClient ->
+            val input = SynthesisInput.newBuilder().setText(text).build()
+            val voice = VoiceSelectionParams.newBuilder()
+                .setLanguageCode("en-US")
+                .setSsmlGender(SsmlVoiceGender.MALE)
+                .build()
+            val audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.MP3).build()
+            val response = speechClient.synthesizeSpeech(input, voice, audioConfig)
+                ?: throw IllegalStateException("Тело ответа пустое")
 
-                val input = SynthesisInput.newBuilder().setText(text).build()
-                val voice = VoiceSelectionParams.newBuilder()
-                    .setLanguageCode("en-US")
-                    .setSsmlGender(SsmlVoiceGender.MALE)
-                    .build()
-                val audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.MP3).build()
-                val response = speechClient.synthesizeSpeech(input, voice, audioConfig)
-                    ?: throw IllegalStateException("Тело ответа пустое")
-
-                return response.audioContent.toByteArray()
+            val responseByteArray = response.audioContent.toByteArray()
+            val audioFile = File(mediaFolderPath, "audio$chatId.mp3")
+            audioFile.outputStream().use { fileOutputStream ->
+                fileOutputStream.write(responseByteArray)
             }
+            return audioFile
+        }
     }
 }
+
+const val TTS_KEY_FILENAME = "googlespeech.json"
