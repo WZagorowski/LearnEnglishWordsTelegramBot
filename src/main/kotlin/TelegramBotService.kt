@@ -1,9 +1,12 @@
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import java.io.IOException
 
 class TelegramBotService(
@@ -13,43 +16,29 @@ class TelegramBotService(
     private val client = OkHttpClient()
 
     companion object {
-        const val apiTelegramLink = "https://api.telegram.org"
+        const val API_TELEGRAM = "https://api.telegram.org"
     }
 
     fun getUpdates(updateId: Long): String {
-        val urlGetUpdates = "$apiTelegramLink/bot$botToken/getUpdates?offset=$updateId"
+        val urlGetUpdates = "$API_TELEGRAM/bot$botToken/getUpdates?offset=$updateId"
         val request = Request.Builder().url(urlGetUpdates).build()
-        val response = client.newCall(request).execute()
-
-        if (!response.isSuccessful)
-            throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
-        else
-            return response.body?.string() ?: throw IllegalStateException("Тело ответа пустое")
+        return getResponse(request)
     }
 
     fun sendMessage(chatId: Long, message: String): String {
-        val sendMessage = "$apiTelegramLink/bot$botToken/SendMessage"
+        val urlSendMessage = "$API_TELEGRAM/bot$botToken/sendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = message,
         )
         val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(sendMessage, requestBodyString)
-    }
-
-    private fun sendAndDeleteMessage(chatId: Long, messageId: Long, message: String): String {
-        val sendMessage = "$apiTelegramLink/bot$botToken/editMessageText"
-        val requestBody = SendMessageRequest(
-            chatId = chatId,
-            messageId = messageId,
-            text = message,
-        )
-        val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(sendMessage, requestBodyString)
+        val body = requestBodyString.toRequestBody("application/json; charset=utf-8".toMediaType())
+        val request = Request.Builder().url(urlSendMessage).post(body).build()
+        return getResponse(request)
     }
 
     fun sendMenu(chatId: Long): String {
-        val sendMessage = "$apiTelegramLink/bot$botToken/SendMessage"
+        val urlSendMessage = "$API_TELEGRAM/bot$botToken/sendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = "Основное меню",
@@ -66,52 +55,77 @@ class TelegramBotService(
             )
         )
         val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(sendMessage, requestBodyString)
-    }
-
-    fun sendFirstQuestion(chatId: Long, question: Question): String {
-        val urlSendMessage = "$apiTelegramLink/bot$botToken/SendMessage"
-        val requestBody = SendMessageRequest(
-            chatId = chatId,
-            text = "Выбери правильный перевод слова:\n\n${question.correctAnswer.original}",
-            replyMarkup = ReplyMarkup(
-                question.variants.mapIndexed { index, word ->
-                    listOf(
-                        InlineKeyboard(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
-                    )
-                }
-            )
-        )
-        val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(urlSendMessage, requestBodyString)
-    }
-
-    fun editAndSendQuestion(chatId: Long, messageId: Long, question: Question, text: String): String {
-        val urlEditMessage = "$apiTelegramLink/bot$botToken/editMessageReplyMarkup"
-        sendAndDeleteMessage(chatId, messageId, "$text\n\n${question.correctAnswer.original}")
-        val requestBody = SendMessageRequest(
-            chatId = chatId,
-            messageId = messageId,
-            replyMarkup = ReplyMarkup(
-                question.variants.mapIndexed { index, word ->
-                    listOf(
-                        InlineKeyboard(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
-                    )
-                }
-            )
-        )
-        val requestBodyString = json.encodeToString(requestBody)
-        return getPostResponse(urlEditMessage, requestBodyString)
-    }
-
-    private fun getPostResponse(url: String, requestBodyString: String): String {
         val body = requestBodyString.toRequestBody("application/json; charset=utf-8".toMediaType())
-        val request = Request.Builder().url(url).post(body).build()
-        val response = client.newCall(request).execute()
+        val request = Request.Builder().url(urlSendMessage).post(body).build()
+        return getResponse(request)
+    }
 
-        if (!response.isSuccessful)
-            throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
-        else
-            return response.body?.string() ?: throw IllegalStateException("Тело ответа пустое")
+    fun sendPhoto(chatId: Long, urlPhoto: String, urlPhotoReserve: String, question: Question, text: String): String {
+        val urlSendPhoto = "$API_TELEGRAM/bot$botToken/sendPhoto"
+        var responseString: String? = null
+        var url = urlPhoto
+        var count = 1
+        while (responseString.isNullOrEmpty()) {
+            val requestBody = SendPhotoRequest(
+                chatId = chatId,
+                urlPhoto = url,
+                caption = "$text\n\nСледующее слово: ${question.correctAnswer.original}",
+                isHasSpoiler = true,
+                replyMarkup = ReplyMarkup(
+                    question.variants.mapIndexed { index, word ->
+                        listOf(
+                            InlineKeyboard(text = word.translate, callbackData = "$CALLBACK_DATA_ANSWER_PREFIX$index")
+                        )
+                    }
+                )
+            )
+            val requestBodyString = json.encodeToString(requestBody)
+            val body = requestBodyString.toRequestBody("application/json; charset=utf-8".toMediaType())
+            val request = Request.Builder().url(urlSendPhoto).post(body).build()
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    if (count-- > 0) {
+                        url = urlPhotoReserve
+                    } else {
+                        throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+                    }
+                } else
+                    responseString = response.body?.string()
+            }
+            if (responseString.isNullOrEmpty()) continue
+        }
+        return responseString ?: throw IllegalStateException("Тело ответа пустое")
+    }
+
+    fun sendAudio(chatId: Long, question: Question, file: File): String {
+        val urlSendAudio = "$API_TELEGRAM/bot$botToken/sendAudio"
+        val contentType = "audio/mpeg".toMediaTypeOrNull()
+
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("chat_id", chatId.toString())
+            .addFormDataPart("performer", "Воспроизвести слово")
+            .addFormDataPart("title", question.correctAnswer.original)
+            .addFormDataPart("audio", file.name, file.readBytes().toRequestBody(contentType))
+            .build()
+
+        val request = Request.Builder().url(urlSendAudio).post(requestBody).build()
+        return getResponse(request)
+    }
+
+    fun deleteMessage(chatId: Long, messageId: Long): String {
+        val urlDeleteMessage = "$API_TELEGRAM/bot$botToken/deleteMessage?chat_id=$chatId&message_id=$messageId"
+        val request = Request.Builder().url(urlDeleteMessage).build()
+        return getResponse(request)
+    }
+
+    private fun getResponse(request: Request): String {
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+            } else {
+                return response.body?.string() ?: throw IllegalStateException("Тело ответа пустое")
+            }
+        }
     }
 }
