@@ -16,17 +16,17 @@ class TelegramBotService(
     private val client = OkHttpClient()
 
     companion object {
-        const val apiTelegramLink = "https://api.telegram.org"
+        const val API_TELEGRAM = "https://api.telegram.org"
     }
 
     fun getUpdates(updateId: Long): String {
-        val urlGetUpdates = "$apiTelegramLink/bot$botToken/getUpdates?offset=$updateId"
+        val urlGetUpdates = "$API_TELEGRAM/bot$botToken/getUpdates?offset=$updateId"
         val request = Request.Builder().url(urlGetUpdates).build()
         return getResponse(request)
     }
 
     fun sendMessage(chatId: Long, message: String): String {
-        val urlSendMessage = "$apiTelegramLink/bot$botToken/sendMessage"
+        val urlSendMessage = "$API_TELEGRAM/bot$botToken/sendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = message,
@@ -38,7 +38,7 @@ class TelegramBotService(
     }
 
     fun sendMenu(chatId: Long): String {
-        val urlSendMessage = "$apiTelegramLink/bot$botToken/sendMessage"
+        val urlSendMessage = "$API_TELEGRAM/bot$botToken/sendMessage"
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = "Основное меню",
@@ -61,7 +61,7 @@ class TelegramBotService(
     }
 
     fun sendPhoto(chatId: Long, urlPhoto: String, urlPhotoReserve: String, question: Question, text: String): String {
-        val urlSendPhoto = "$apiTelegramLink/bot$botToken/sendPhoto"
+        val urlSendPhoto = "$API_TELEGRAM/bot$botToken/sendPhoto"
         var responseString: String? = null
         var url = urlPhoto
         var count = 1
@@ -98,7 +98,7 @@ class TelegramBotService(
     }
 
     fun sendAudio(chatId: Long, question: Question, file: File): String {
-        val urlSendAudio = "$apiTelegramLink/bot$botToken/sendAudio"
+        val urlSendAudio = "$API_TELEGRAM/bot$botToken/sendAudio"
         val contentType = "audio/mpeg".toMediaTypeOrNull()
 
         val requestBody = MultipartBody.Builder()
@@ -114,7 +114,7 @@ class TelegramBotService(
     }
 
     fun deleteMessage(chatId: Long, messageId: Long): String {
-        val urlDeleteMessage = "$apiTelegramLink/bot$botToken/deleteMessage?chat_id=$chatId&message_id=$messageId"
+        val urlDeleteMessage = "$API_TELEGRAM/bot$botToken/deleteMessage?chat_id=$chatId&message_id=$messageId"
         val request = Request.Builder().url(urlDeleteMessage).build()
         return getResponse(request)
     }

@@ -14,12 +14,13 @@ class GoogleCloudService(
     private val photoClient = OkHttpClient()
 
     companion object {
-        const val apiGoogle = "https://www.googleapis.com/customsearch/v1"
-        const val searchSettings = "&searchType=image&imgType=clipart&imgColorType=color&num=2"
+        const val API_GOOGLE = "https://www.googleapis.com/customsearch/v1"
+        const val SEARCH_SETTINGS = "&searchType=image&imgType=clipart&imgColorType=color&num=2"
+        const val TTS_KEY_FILENAME = "googlespeech.json"
     }
 
     fun getPhotoItems(text: String): PhotoResponse {
-        val urlGetImage = "$apiGoogle?key=$searchKey&cx=e3fd0b8afbd7746dd&q=$text$searchSettings"
+        val urlGetImage = "$API_GOOGLE?key=$searchKey&cx=e3fd0b8afbd7746dd&q=$text$SEARCH_SETTINGS"
         val request = Request.Builder().url(urlGetImage).build()
         photoClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
@@ -58,5 +59,3 @@ class GoogleCloudService(
         }
     }
 }
-
-const val TTS_KEY_FILENAME = "googlespeech.json"
