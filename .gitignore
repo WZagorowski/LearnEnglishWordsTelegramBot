@@ -41,3 +41,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 /.idea/
+/googlespeech.json
+/myDatabase.db
+/1224939720.txt

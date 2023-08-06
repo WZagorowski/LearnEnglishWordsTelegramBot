@@ -1,3 +1,45 @@
+mysterious|загадочный|0
+adventure|приключение|0
+joyful|радостный|0
+friendship|дружба|0
+lonely|одинокий|0
+knowledge|знание|0
+delicious|вкусный|0
+comfortable|комфортабельный|0
+generous|щедрый|0
+decision|решение|0
+ordinary|обычный|0
+experience|опыт|0
+careful|осторожный|0
+explore|исследовать|0
+honest|честный|0
+entertain|развлекать|0
+familiar|знакомый|0
+include|включать|0
+patient|терпеливый|0
+improve|улучшать|0
+journey|путешествие|0
+skillful|искусный|0
+prepare|подготавливать|0
+organized|организованный|0
+problem|проблема|0
+traditional|традиционный|0
+polite|вежливый|0
+patient|терпеливый|0
+opportunity|возможность|0
+anxious|тревожный|0
+education|образование|0
+responsible|ответственный|0
+relationship|отношение|0
+tired|уставший|0
+behavior|поведение|0
+powerful|мощный|0
+decision|решение|0
+distance|расстояние|0
+patient|терпеливый|0
+independent|независимый|0
+valuable|ценный|0
+challenge|вызов|0
 define|определять|0
 solve|решать|0
 serve|служить|0
@@ -12,8 +54,6 @@ enough|достаточно|0
 rather|скорее|0
 thin|тонкий|0
 thick|толстый, густой|0
-watery|жидкий|0
-ugly|уродливый|0
 cute|милый|0
 difficult|сложный|0
 cheap|дешевый|0
@@ -27,12 +67,11 @@ weak|слабый|0
 tight|тесный|0
 loose|свободный|0
 noisy|шумный|0
-quiet|тихтий|0
+quiet|тихий|0
 liquid|жидкий|0
 solid|твердый|0
 polite|вежливый|0
 rude|грубый|0
-common|общий|0
 rare|редкий|0
 rough|грубый|0
 smooth|гладкий|0
@@ -44,13 +83,12 @@ present|присутствующий|0
 absent|отсутствующий|0
 awake|проснувшийся|0
 busy|занятый|0
-same|такой же|0
+the same|такой же|0
 brave|храбрый|0
 tough|жесткий|0
 advance|продвигать|0
 spill|проливать|0
 disease|болезнь|0
-compare|сравнивать|0
 pressure|давление|0
 sweep|мести|0
 fluid|жидкость|0
@@ -64,16 +102,13 @@ sync|синхронизировать|0
 theme|тема|0
 frame|рамка|0
 shape|форма|0
-footer|нижний колонтитул|0
 dashboard|панель приборов|0
 sequence|последовательность|0
 expression|выражение|0
-within|в пределах|0
 sample|образец|0
 throw|бросать|0
 thread|нить|0
 bound|граница|0
-runtime|время выполнения|0
 turn|повернуть|0
 essential|существенный|0
 parties|стороны|0
@@ -83,7 +118,6 @@ enable|давать возможность|0
 separate|отдельный|0
 consist|состоять|0
 directly|напрямую|0
-default|по умолчанию|0
 script|сценарий|0
 various|различный|0
 below|ниже|0
@@ -92,9 +126,93 @@ manually|вручную|0
 match|соответствовать|0
 note|примечание|0
 notice|уведомление|0
-also|также|0
 apply|применять|0
 require|требовать|0
 query|запрос|0
 response|ответ|0
-remedies|средства|0
+template|шаблон|0
+disable|запрещать, отключать|0
+permission|разрешение|0
+dismiss|увольнять, отклонять|0
+permission|разрешение|0
+instance|пример, экземпляр|0
+execution|исполнение|0
+attempt|пытаться|0
+underlying|лежащий в основе|0
+dispatcher|диспетчер|0
+commit|совершить|0
+desire|желание|0
+scope|объем, размах|0
+concurrency|параллелизм, одновременность|0
+either|или, либо|0
+research|исследование|0
+case|случай, кейс|0
+curious|любопытный|0
+prefer|предпочитать|0
+responsible|ответственный|0
+recommend|рекомендовать|0
+value|ценность|0
+sensitive|чувствительный|0
+unique|уникальный|0
+succeed|достигать успеха, преуспевать|0
+effort|усилие|0
+ordinary|обычный|0
+convenient|удобный|0
+achieve|достигать|0
+reliable|надежный|0
+simple|простой|0
+talent|талант|0
+unique|уникальный|0
+valuable|ценный|0
+wild|дикий|0
+accomplish|достигать|0
+advantage|преимущество|0
+behavior|поведение|0
+challenge|вызов|0
+decision|решение|0
+environment|окружающая среда|0
+landscape|пейзаж|0
+observe|наблюдать|0
+cucumber|огурец|0
+carrot|морковь|0
+potato|картошка|0
+onion|лук|0
+garlic|чеснок|0
+strawberry|клубника|0
+watermelon|арбуз|0
+pineapple|ананас|0
+bread|хлеб|0
+rice|рис|0
+pasta|макароны|0
+cheese|сыр|0
+butter|масло|0
+milk|молоко|0
+yogurt|йогурт|0
+egg|яйцо|0
+chicken|курица|0
+beef|говядина|0
+fish|рыба|0
+shrimp|креветка|0
+salad|салат|0
+soup|суп|0
+pizza|пицца|0
+sandwich|сэндвич|0
+coffee|кофе|0
+plate|тарелка|0
+bowl|миска|0
+fork|вилка|0
+knife|нож|0
+spoon|ложка|0
+glass|стакан|0
+cup|чашка|0
+saucer|блюдце|0
+pot|горшок|0
+pan|сковорода|0
+stove|плита|0
+oven|духовка|0
+blender|блендер|0
+toaster|тостер|0
+refrigerator|холодильник|0
+microwave|микроволновка|0
+cutting board|разделочная доска|0
+can opener|открывашка для банок|0
