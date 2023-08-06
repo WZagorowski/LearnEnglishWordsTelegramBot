@@ -190,35 +190,11 @@ fun checkNextQuestionAndSend(
     if (question == null) {
         botService.sendMessage(chatId, "Вы выучили все слова в базе")
     } else {
-        sendPhotoWithVariants(question, botService, googleService, chatId, text)
-        sendAudio(question, botService, googleService, chatId)
-    }
-}
+        val photoItem = googleService.getPhotoLinks(question.correctAnswer.original)
+        botService.sendPhoto(chatId, photoItem, question, text)
 
-fun sendPhotoWithVariants(
-    question: Question,
-    botService: TelegramBotService,
-    googleService: GoogleCloudService,
-    chatId: Long,
-    text: String,
-) {
-    val photoResponse = googleService.getPhotoItems(question.correctAnswer.original)
-    val urlPhoto = photoResponse.searchItems[0].link
-    val urlPhotoReserve = photoResponse.searchItems[1].link
-    botService.sendPhoto(chatId, urlPhoto, urlPhotoReserve, question, text)
-}
-
-fun sendAudio(
-    question: Question,
-    botService: TelegramBotService,
-    googleService: GoogleCloudService,
-    chatId: Long,
-) {
-    val audioFile = googleService.getAudioFile(chatId, question.correctAnswer.original)
-    try {
+        val audioFile = googleService.getAudioFile(question.correctAnswer.original)
         botService.sendAudio(chatId, question, audioFile)
-    } finally {
-        audioFile.delete()
     }
 }
 
