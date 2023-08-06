@@ -12,7 +12,6 @@ class GoogleCloudService(
     private val json: Json = Json { ignoreUnknownKeys = true },
 ) {
     private val photoClient = OkHttpClient()
-
     companion object {
         const val API_GOOGLE = "https://www.googleapis.com/customsearch/v1"
         const val SEARCH_SETTINGS = "&searchType=image&imgType=clipart&imgColorType=color&num=2"
@@ -24,11 +23,11 @@ class GoogleCloudService(
         val request = Request.Builder().url(urlGetImage).build()
         photoClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+                throw IOException("Request failed: ${response.code} ${response.message}")
             } else {
                 return response.body?.string()
                     ?.let { json.decodeFromString(it) }
-                    ?: throw IllegalStateException("Тело ответа пустое")
+                    ?: throw IllegalStateException("The response body is empty")
             }
         }
     }
@@ -48,7 +47,7 @@ class GoogleCloudService(
                 .build()
             val audioConfig = AudioConfig.newBuilder().setAudioEncoding(AudioEncoding.MP3).build()
             val response = speechClient.synthesizeSpeech(input, voice, audioConfig)
-                ?: throw IllegalStateException("Тело ответа пустое")
+                ?: throw IllegalStateException("The response body is empty")
 
             val responseByteArray = response.audioContent.toByteArray()
             val audioFile = File(mediaFolderPath, "audio$chatId.mp3")

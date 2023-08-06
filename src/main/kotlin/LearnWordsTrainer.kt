@@ -79,7 +79,7 @@ class LearnWordsTrainer(
             }
             return dictionary
         } catch (e: IndexOutOfBoundsException) {
-            throw IllegalStateException("некоректный файл")
+            throw IllegalStateException("invalid file")
         }
     }
 

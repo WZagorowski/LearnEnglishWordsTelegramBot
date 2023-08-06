@@ -87,14 +87,14 @@ class TelegramBotService(
                     if (count-- > 0) {
                         url = urlPhotoReserve
                     } else {
-                        throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+                        throw IOException("Request failed: ${response.code} ${response.message}")
                     }
                 } else
                     responseString = response.body?.string()
             }
             if (responseString.isNullOrEmpty()) continue
         }
-        return responseString ?: throw IllegalStateException("Тело ответа пустое")
+        return responseString ?: throw IllegalStateException("The response body is empty")
     }
 
     fun sendAudio(chatId: Long, question: Question, file: File): String {
@@ -122,9 +122,9 @@ class TelegramBotService(
     private fun getResponse(request: Request): String {
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                throw IOException("Запрос не был успешен: ${response.code} ${response.message}")
+                throw IOException("Request failed: ${response.code} ${response.message}")
             } else {
-                return response.body?.string() ?: throw IllegalStateException("Тело ответа пустое")
+                return response.body?.string() ?: throw IllegalStateException("The response body is empty")
             }
         }
     }
