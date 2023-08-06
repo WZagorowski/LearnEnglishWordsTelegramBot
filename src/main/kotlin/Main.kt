@@ -1,38 +1,33 @@
 fun main() {
 
     val trainer = try {
-        LearnWordsTrainer(
-            learnedCount = 3,
-            numberOfAnswers = 4,
-            fileName = "words.txt",
-        )
+        ConsoleTrainerWithExposed()
     } catch (e: Exception) {
-        println("Невозможно загрузить словарь")
+        println("Failed to load dictionary")
         return
     }
 
     while (true) {
-
-        println("Меню: 1 – Учить слова, 2 – Статистика, 0 – Выход")
+        println("Menu: 1 - Learn words, 2 - Statistics, 3 - Reset statistics, 0 - Exit")
         when (readln().toIntOrNull()) {
             1 -> {
                 while (true) {
-
                     val question = trainer.getNextQuestion()
+
                     if (question == null) {
-                        println("Вы выучили все слова!")
+                        println("You learned all words")
                         break
                     } else {
                         println(question.asConsoleString())
-
                         val userAnswerInput = readln().toIntOrNull()
+
                         if (userAnswerInput == 0) break
 
                         if (trainer.checkAnswer(userAnswerInput?.minus(1))) {
-                            println("Правильно!\n")
+                            println("Right!\n")
                         } else {
                             val answer = question.correctAnswer
-                            println("Неправильно! - ${answer.original} - это ${answer.translate}\n")
+                            println("Wrong! - ${answer.original} - it's ${answer.translate}\n")
                         }
                     }
                 }
@@ -40,18 +35,23 @@ fun main() {
 
             2 -> {
                 val statistics = trainer.getStatistics()
-                println("Выучено ${statistics.learned} из ${statistics.total} слов | ${statistics.percent}%")
+                println("Learned ${statistics.learned} of ${statistics.total} words | ${statistics.percent}%")
+            }
+
+            3 -> {
+                trainer.resetProgress()
+                println("Progress has been reset")
             }
 
             0 -> break
-            else -> println("Введите 1, 2 или 0")
+            else -> println("Enter the number 1, 2, 3 or 0")
         }
     }
 }
 
 fun Question.asConsoleString(): String {
     val variants = this.variants
-        .mapIndexed { index: Int, word: Word -> " ${index + 1} - ${word.translate}" }
+        .mapIndexed { index: Int, word: Word -> "${index + 1} - ${word.translate}" }
         .joinToString(separator = "\n")
-    return this.correctAnswer.original + "\n" + variants + "\n 0 - выйти в меню"
+    return this.correctAnswer.original + "\n" + variants + "\n0 - exit to the menu"
 }
