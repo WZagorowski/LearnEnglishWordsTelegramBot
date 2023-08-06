@@ -14,7 +14,7 @@ class QuestionTest {
         val question = Question(variants, correctAnswer)
 
         val actualConsoleString = question.asConsoleString()
-        val expectedConsoleString = "hello\n 1 - привет\n 2 - кошка\n 3 - собака\n 0 - выйти в меню"
+        val expectedConsoleString = "hello\n1 - привет\n2 - кошка\n3 - собака\n0 - exit to the menu"
         assertEquals(expectedConsoleString, actualConsoleString)
     }
 
@@ -29,7 +29,7 @@ class QuestionTest {
         val question = Question(variants, correctAnswer)
 
         val actualConsoleString = question.asConsoleString()
-        val expectedConsoleString = "hello\n 1 - собака\n 2 - привет\n 3 - кошка\n 0 - выйти в меню"
+        val expectedConsoleString = "hello\n1 - собака\n2 - привет\n3 - кошка\n0 - exit to the menu"
         assertEquals(expectedConsoleString, actualConsoleString)
     }
 
@@ -40,7 +40,7 @@ class QuestionTest {
         val question = Question(variants, correctAnswer)
 
         val actualConsoleString = question.asConsoleString()
-        val expectedConsoleString = "hello\n 1 - привет\n 0 - выйти в меню"
+        val expectedConsoleString = "hello\n1 - привет\n0 - exit to the menu"
         assertEquals(expectedConsoleString, actualConsoleString)
     }
 
@@ -51,7 +51,7 @@ class QuestionTest {
         val question = Question(variants, correctAnswer)
 
         val actualConsoleString = question.asConsoleString()
-        val expectedConsoleString = "hello\n\n 0 - выйти в меню"
+        val expectedConsoleString = "hello\n\n0 - exit to the menu"
         assertEquals(expectedConsoleString, actualConsoleString)
     }
 }
