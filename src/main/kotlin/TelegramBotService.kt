@@ -60,10 +60,10 @@ class TelegramBotService(
         return getResponse(request)
     }
 
-    fun sendPhoto(chatId: Long, urlPhoto: String, urlPhotoReserve: String, question: Question, text: String): String {
+    fun sendPhoto(chatId: Long, photoItem: PhotoItem, question: Question, text: String): String {
         val urlSendPhoto = "$API_TELEGRAM/bot$botToken/sendPhoto"
         var responseString: String? = null
-        var url = urlPhoto
+        var url = photoItem.linkOne
         var count = 1
         while (responseString.isNullOrEmpty()) {
             val requestBody = SendPhotoRequest(
@@ -85,7 +85,7 @@ class TelegramBotService(
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     if (count-- > 0) {
-                        url = urlPhotoReserve
+                        url = photoItem.linkTwo
                     } else {
                         throw IOException("Request failed: ${response.code} ${response.message}")
                     }

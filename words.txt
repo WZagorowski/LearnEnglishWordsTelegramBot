@@ -22,7 +22,6 @@ journey|путешествие|0
 skillful|искусный|0
 prepare|подготавливать|0
 organized|организованный|0
-problem|проблема|0
 traditional|традиционный|0
 polite|вежливый|0
 patient|терпеливый|0
@@ -160,11 +159,9 @@ ordinary|обычный|0
 convenient|удобный|0
 achieve|достигать|0
 reliable|надежный|0
-simple|простой|0
 talent|талант|0
 unique|уникальный|0
 valuable|ценный|0
-wild|дикий|0
 accomplish|достигать|0
 advantage|преимущество|0
 behavior|поведение|0
@@ -175,7 +172,6 @@ landscape|пейзаж|0
 observe|наблюдать|0
 cucumber|огурец|0
 carrot|морковь|0
-potato|картошка|0
 onion|лук|0
 garlic|чеснок|0
 strawberry|клубника|0
@@ -185,34 +181,20 @@ bread|хлеб|0
 rice|рис|0
 pasta|макароны|0
 cheese|сыр|0
-butter|масло|0
-milk|молоко|0
-yogurt|йогурт|0
-egg|яйцо|0
-chicken|курица|0
-beef|говядина|0
-fish|рыба|0
 shrimp|креветка|0
-salad|салат|0
 soup|суп|0
-pizza|пицца|0
 sandwich|сэндвич|0
-coffee|кофе|0
 plate|тарелка|0
 bowl|миска|0
 fork|вилка|0
 knife|нож|0
 spoon|ложка|0
 glass|стакан|0
-cup|чашка|0
 saucer|блюдце|0
 pot|горшок|0
 pan|сковорода|0
 stove|плита|0
 oven|духовка|0
-blender|блендер|0
-toaster|тостер|0
 refrigerator|холодильник|0
-microwave|микроволновка|0
 cutting board|разделочная доска|0
 can opener|открывашка для банок|0
