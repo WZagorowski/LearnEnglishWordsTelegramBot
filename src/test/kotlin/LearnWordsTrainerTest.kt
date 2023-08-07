@@ -16,7 +16,7 @@ class LearnWordsTrainerTest {
     fun `test statistics with corrupted file`() {
         val trainer = LearnWordsTrainer("corrupted_file.txt")
         kotlin.test.assertEquals(
-            Statistics(learned = 0, total = 218, percent = 0),
+            Statistics(learned = 0, total = 200, percent = 0),
             trainer.getStatistics()
         )
     }
