@@ -154,26 +154,31 @@ fun handleUpdate(
     }
     if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
         val answerIndex = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
-        botService.deleteMessage(chatId, messageId)
-        botService.deleteMessage(chatId, messageId + 1)
-
-        if (trainer.checkAnswer(answerIndex)) {
-            checkNextQuestionAndSend(
-                trainer,
-                botService,
-                googleService,
-                chatId,
-                "Правильно!",
-            )
-        } else {
-            val rightQuestion = trainer.question?.correctAnswer
-            checkNextQuestionAndSend(
-                trainer,
-                botService,
-                googleService,
-                chatId,
-                "Не правильно!\n${rightQuestion?.original} - ${rightQuestion?.translate}",
-            )
+        try {
+            botService.deleteMessage(chatId, messageId)
+            botService.deleteMessage(chatId, messageId + 1)
+        } catch (e: Exception) {
+            botService.sendMessage(chatId, "Из-за ограничений телеграмма рекомендуется" +
+                    " очистить историю сообщений и снова запустить бота. Статистика при этом не пострадает.")
+        } finally {
+            if (trainer.checkAnswer(answerIndex)) {
+                checkNextQuestionAndSend(
+                    trainer,
+                    botService,
+                    googleService,
+                    chatId,
+                    "Правильно!",
+                )
+            } else {
+                val rightQuestion = trainer.question?.correctAnswer
+                checkNextQuestionAndSend(
+                    trainer,
+                    botService,
+                    googleService,
+                    chatId,
+                    "Не правильно!\n${rightQuestion?.original} - ${rightQuestion?.translate}",
+                )
+            }
         }
     }
 }
